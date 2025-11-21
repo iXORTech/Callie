@@ -1,16 +1,17 @@
-package dev.ixor.callie
+package dev.ixor.callie.pages
 
-
-import kotlinx.html.*
 import io.ktor.htmx.html.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.*
+import kotlinx.html.*
 import java.nio.file.Paths
-import kotlin.io.path.*
+import kotlin.io.path.exists
+import kotlin.io.path.useLines
 import kotlin.random.Random
 
 fun HTML.leaderboardPage(random: Random) {
     head {
         title("HTMX Example")
+//        script(src = "/webjars/htmx.org/dist/htmx.js") {}
         script(src = "/web.js") {}
         link(rel = "stylesheet", href = "/leaderboard.css")
     }
@@ -93,4 +94,3 @@ data class Contestant(
     val alias: String,
     val score: Int,
 )
-

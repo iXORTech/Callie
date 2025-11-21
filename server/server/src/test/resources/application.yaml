@@ -1,0 +1,16 @@
+# This file is SPECIFICALLY and ONLY for configuring the server started by the unit tests.
+
+ktor:
+  application:
+    modules:
+      - dev.ixor.callie.ApplicationKt.module
+  deployment:
+    port: 8080
+  development: false
+
+# Use H2 in-memory database for testing.
+database:
+  driverClassName: "org.h2.Driver"
+  jdbcUrl: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+  username: "root"
+  password: ""

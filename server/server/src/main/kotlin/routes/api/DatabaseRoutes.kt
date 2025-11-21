@@ -1,50 +1,25 @@
-package dev.ixor.callie
+package dev.ixor.callie.routes.api
 
-import com.sksamuel.cohort.*
-import com.sksamuel.cohort.cpu.*
-import com.sksamuel.cohort.memory.*
-import freemarker.cache.*
-import io.ktor.client.*
-import io.ktor.client.engine.apache.*
+import dev.ixor.callie.database.ExposedUser
+import dev.ixor.callie.plugins.DatabaseServices
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.freemarker.*
-import io.ktor.server.html.*
-import io.ktor.server.http.content.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.requestvalidation.RequestValidation
-import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.sessions.*
-import io.ktor.server.sse.*
-import io.ktor.server.webjars.*
-import io.ktor.server.websocket.*
-import io.ktor.sse.*
-import io.ktor.websocket.*
-import java.time.Duration
-import kotlin.random.Random
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.Dispatchers
-import kotlinx.css.*
-import kotlinx.html.*
-import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.*
 
-fun Application.configureDatabases() {
-    val database = Database.connect(
-        url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-        user = "root",
-        driver = "org.h2.Driver",
-        password = "",
-    )
-    val userService = UserService(database)
+fun Application.registerDatabaseRoutes() {
+    val userService = DatabaseServices.userService
     routing {
         // Create user
         post("/users") {
+            if (userService == null) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    "Could not create new user. Database service is not available."
+                )
+                return@post
+            }
             val user = call.receive<ExposedUser>()
             val id = userService.create(user)
             call.respond(HttpStatusCode.Created, id)
@@ -52,6 +27,13 @@ fun Application.configureDatabases() {
 
         // Read user
         get("/users/{id}") {
+            if (userService == null) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    "Could not read user. Database service is not available."
+                )
+                return@get
+            }
             val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
             val user = userService.read(id)
             if (user != null) {
@@ -63,6 +45,13 @@ fun Application.configureDatabases() {
 
         // Update user
         put("/users/{id}") {
+            if (userService == null) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    "Could not update user. Database service is not available."
+                )
+                return@put
+            }
             val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
             val user = call.receive<ExposedUser>()
             userService.update(id, user)
@@ -71,6 +60,13 @@ fun Application.configureDatabases() {
 
         // Delete user
         delete("/users/{id}") {
+            if (userService == null) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    "Could not delete user. Database service is not available."
+                )
+                return@delete
+            }
             val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
             userService.delete(id)
             call.respond(HttpStatusCode.OK)

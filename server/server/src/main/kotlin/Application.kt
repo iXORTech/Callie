@@ -1,5 +1,6 @@
 package dev.ixor.callie
 
+import dev.ixor.callie.plugins.*
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
@@ -8,10 +9,11 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     configureSecurity()
-    configureSerialization()
     configureMonitoring()
+    configureSerialization()
     configureTemplating()
     configureDatabases()
     configureSockets()
+    // Always configure routing last to make sure all plugins are ready.
     configureRouting()
 }
