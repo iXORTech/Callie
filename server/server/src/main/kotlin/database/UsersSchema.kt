@@ -8,13 +8,34 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
-data class ExposedUser(val name: String, val age: Int)
+data class ExposedUser(val username: String)
 
 class UserService(database: Database) {
     object Users : Table() {
         val id = integer("id").autoIncrement()
-        val name = varchar("name", length = 50)
-        val age = integer("age")
+        val username = varchar("username", length = 50).uniqueIndex()
+        val passwordHash = varchar("passwordHash", length = 255)
+        val createdAt = long("created_at").default(System.currentTimeMillis())
+        val updatedAt = long("updated_at").default(System.currentTimeMillis())
+
+        override val primaryKey = PrimaryKey(id)
+    }
+
+    object ClientTokens : Table() {
+        val id = integer("id")
+        val userId = integer("user_id").references(Users.id)
+        val machineId = varchar("machine_id", length = 64).uniqueIndex()
+        val tokenHash = varchar("token_hash", length = 255)
+        val createdAt = long("created_at").default(System.currentTimeMillis())
+
+        override val primaryKey = PrimaryKey(id)
+    }
+
+    object SessionTokens : Table("session_tokens") {
+        val id = integer("id")
+        val userId = integer("user_id").references(Users.id)
+        val createdAt = long("created_at").default(System.currentTimeMillis())
+        val expiresAt = long("expires_at").nullable()
 
         override val primaryKey = PrimaryKey(id)
     }
@@ -27,8 +48,7 @@ class UserService(database: Database) {
 
     suspend fun create(user: ExposedUser): Int = dbQuery {
         Users.insert {
-            it[name] = user.name
-            it[age] = user.age
+            it[username] = user.username
         }[Users.id]
     }
 
@@ -36,7 +56,7 @@ class UserService(database: Database) {
         return dbQuery {
             Users.selectAll()
                 .where { Users.id eq id }
-                .map { ExposedUser(it[Users.name], it[Users.age]) }
+                .map { ExposedUser(it[Users.username]) }
                 .singleOrNull()
         }
     }
@@ -44,8 +64,7 @@ class UserService(database: Database) {
     suspend fun update(id: Int, user: ExposedUser) {
         dbQuery {
             Users.update({ Users.id eq id }) {
-                it[name] = user.name
-                it[age] = user.age
+                it[username] = user.username
             }
         }
     }
