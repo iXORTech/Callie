@@ -16,7 +16,7 @@ The session token generation and user login process follows the steps described 
 
 1. The client application sends an  `application/json` POST request to the `/api/v1/auth/login` endpoint.
 
-    This endpoint **always** takes a [Machine ID](https://crates.io/crates/mid) (or any other ID that identifies a machine uniquely) and a `authType` string indicating what other info are needed for authentication, which should be either `"PASSWD"` or `"TOKEN"` (case-sensitive).
+    This endpoint **always** takes a Machine ID (that identifies the machine uniquely) and a `authType` string indicating what other info are needed for authentication, which should be either `"PASSWD"` or `"TOKEN"` (case-sensitive).
 
     When there is no stored client token, the `authType` is `"PASSWD"`, and the client sends a `username` and a `password` (in plaintext) with the above mentioned information.
 
